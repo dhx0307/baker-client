@@ -1,10 +1,12 @@
 import 'dart:async';
 
+import 'package:bakersoccer/ui/technologicalAnalysis/trendAnalysis/pageViewUtilLogic.dart';
 import 'package:bakersoccer/ui/technologicalAnalysis/trendAnalysis/rightRunningPacePageView/rightRunningPacePageView.dart';
 import 'package:bakersoccer/ui/technologicalAnalysis/trendAnalysis/touchBallRotationChart/touchBallRotationChartView.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../model/stackImage/stackImage.dart';
@@ -92,6 +94,8 @@ class _TrendAnalysisViewState extends State<TrendAnalysisView> {
   // 旋转
   RotatorFlipState _flipState = RotatorFlipState.showFirst;
 
+  late PageViewUtilLogic _pageViewUtilLogic;
+
   @override
   void initState() {
     // TODO: implement initState
@@ -102,6 +106,7 @@ class _TrendAnalysisViewState extends State<TrendAnalysisView> {
     for (var image in images) {
       initialImageUrls[image.id!] = image.imageUrl;
     }
+    _pageViewUtilLogic = Get.find<PageViewUtilLogic>();
   }
 
   @override
@@ -112,6 +117,7 @@ class _TrendAnalysisViewState extends State<TrendAnalysisView> {
       _pageController.addListener(_updateVisibleProgress);
       _isListenerAdded = true;
     }
+    log.i("_pageViewUtilLogic:${_pageViewUtilLogic.isPageViewScrollable.value}");
   }
 
   @override
@@ -872,19 +878,24 @@ class _TrendAnalysisViewState extends State<TrendAnalysisView> {
                 _startLongPressTimer(index, normalPosition);
               },
               onPointerUp: (PointerUpEvent event) {
+                _pageViewUtilLogic.isPageViewScrollable.value = true;
                 _cancelLongPress();
               },
               onPointerCancel: (PointerCancelEvent event) {
+                _pageViewUtilLogic.isPageViewScrollable.value = true;
                 _cancelLongPress();
               },
               child: GestureDetector(
                 behavior: HitTestBehavior.translucent,
+                excludeFromSemantics: true, // 排除语义化，提升手势优先级
+                dragStartBehavior: DragStartBehavior.down, // 优化手势触发时机
                 onPanStart: (DragStartDetails details) {
                   // 只有在长按后才会进入拖拽模式
                   if (_draggingIndex == index) {
                     setState(() {
                       _dragStartPosition = normalPosition;
                       _dragOffset = Offset.zero;
+                      _pageViewUtilLogic.isPageViewScrollable.value = false;// 禁用 外层PageView 滑动
                     });
                   }
                 },
@@ -899,9 +910,11 @@ class _TrendAnalysisViewState extends State<TrendAnalysisView> {
                   }
                 },
                 onPanEnd: (DragEndDetails details) {
+                  _pageViewUtilLogic.isPageViewScrollable.value = true;
                   _handleDragEnd();
                 },
                 onPanCancel: () {
+                  _pageViewUtilLogic.isPageViewScrollable.value = true;
                   _handleDragEnd();
                 },
                 child: Container(
@@ -978,12 +991,16 @@ class _TrendAnalysisViewState extends State<TrendAnalysisView> {
         _draggingIndex = index;
         _dragStartPosition = normalPosition;
         _dragOffset = Offset.zero;
+        _pageViewUtilLogic.isPageViewScrollable.value = false;
       });
     });
   }
 
   void _cancelLongPress() {
     _longPressTimer?.cancel();
+    if (_draggingIndex == null) {
+      _pageViewUtilLogic.isPageViewScrollable.value = true;
+    }
   }
 
   void _checkReorder(int draggedIndex) {

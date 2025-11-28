@@ -1,10 +1,9 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 
 import '../ui/technologicalAnalysis/trendAnalysis/easyAnalysis/easyAnalysisView.dart';
-import '../ui/technologicalAnalysis/trendAnalysis/trendAnalysisView.dart';
+import '../ui/technologicalAnalysis/trendAnalysis/pageViewUtilView.dart';
+
 import '../utils/log.dart';
 import '../utils/style/textStyle.dart';
 
@@ -81,7 +80,7 @@ class _TechnologicalAnalysisViewState extends State<TechnologicalAnalysisView> {
                 ),
                 GestureDetector(
                   onTap: () {
-                    Get.to(() => TrendAnalysisView(),
+                    Get.to(() => PageViewUtilView(),
                         transition: Transition.rightToLeft);
                   },
                   child: Image.asset(

@@ -30,6 +30,10 @@ class _MeasureBallPlaceViewState extends State<MeasureBallPlaceView> {
     super.dispose();
   }
 
+  _changeBall(String v) {
+
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -165,7 +169,7 @@ class _MeasureBallPlaceViewState extends State<MeasureBallPlaceView> {
                     autofocus: false,
                     cursorColor: Color.fromRGBO(226, 6, 19, 1),
                     style: TextStyle(color: Colors.white),
-                    // onChanged: (v) => _changeAccount(v),
+                    onChanged: (v) => _changeBall(v),
                     textAlign: TextAlign.center,
                     decoration: InputDecoration(
                       hintText: "请输入球场名称",

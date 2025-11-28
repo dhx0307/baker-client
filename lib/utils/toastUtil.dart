@@ -14,4 +14,14 @@ class ToastUtil {
         textColor: Color.fromRGBO(226, 6, 19, 1),
         fontSize: 14.0);
   }
+  static showSimpleCenterToast(String msg) {
+    Fluttertoast.showToast(
+        msg: msg,
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.CENTER,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.transparent,
+        textColor: Color.fromRGBO(226, 6, 19, 1),
+        fontSize: 14.0);
+  }
 }

@@ -15,6 +15,7 @@ class _TouchBallRotationChartViewState extends State<TouchBallRotationChartView>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color.fromRGBO(16, 16, 16, 1),
       body: GestureDetector(
         onTap: () {
           setState(() {

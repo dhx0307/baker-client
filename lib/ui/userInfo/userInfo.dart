@@ -1,10 +1,15 @@
+import 'package:bakersoccer/ui/userInfo/userInfoLogic.dart';
+import 'package:bakersoccer/utils/toastUtil.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_pickers/pickers.dart';
 import 'package:flutter_pickers/style/picker_style.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
+import '../../model/userInfo/userInfoData.dart';
 import '../../utils/log.dart';
 import '../deviceBinding/deviceBinding.dart';
 
@@ -24,11 +29,100 @@ class _UserInfoState extends State<UserInfo> {
   TextEditingController _signController = TextEditingController();
   TextEditingController _teamController = TextEditingController();
   TextEditingController _footballerController = TextEditingController();
-  TextEditingController _ballparkController = TextEditingController();
   TextEditingController _positionController = TextEditingController();
   TextEditingController _dominantFootController = TextEditingController();
   FocusNode _sexFocusNode = FocusNode();
   String? birth;
+  int? sex;
+  UserInfoLogic? logic;
+  UserInfoData? userInfoData = UserInfoData();
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    logic = Get.put(UserInfoLogic());
+    // _getUserInfo();
+  }
+
+  // _getUserInfo() async {
+  //   UserInfoData res = await logic?.getUserInfo();
+  //   log.i("getUserInfo:$res");
+  // }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+  }
+  _changeNickName(String v) {
+    setState(() {
+      userInfoData?.nickname = v;
+    });
+  }
+  _changeHeight(String v) {
+    print("v:$v");
+    if (v.isEmpty) {
+      return;
+    } else {
+      setState(() {
+        userInfoData?.height = int.parse(v);
+      });
+    }
+    print("userInfoData?.height:${userInfoData?.height}");
+  }
+  _changeWeight(String v) {
+    print("v:$v");
+    if (v.isEmpty) {
+      return;
+    } else {
+      setState(() {
+        userInfoData?.weight = int.parse(v);
+      });
+    }
+    print("userInfoData?.weight:${userInfoData?.weight}");
+  }
+  _changeSign(String v) {
+    setState(() {
+      userInfoData?.sign = v;
+    });
+  }
+  _changeTeam(String v) {
+    if (v.isEmpty) {
+      return;
+    } else {
+      setState(() {
+        userInfoData?.favTeam = int.parse(v);
+      });
+    }
+  }
+  _changeFootballer(String v) {
+    if (v.isEmpty) {
+      return;
+    } else {
+      setState(() {
+        userInfoData?.favPlayer = int.parse(v);
+      });
+    }
+  }
+  _changePos(String v) {
+    if (v.isEmpty) {
+      return;
+    } else {
+      setState(() {
+        userInfoData?.pos = int.parse(v);
+      });
+    }
+  }
+  _changeFeet(String v) {
+    if (v.isEmpty) {
+      return;
+    } else {
+      setState(() {
+        userInfoData?.feet = int.parse(v);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -68,7 +162,7 @@ class _UserInfoState extends State<UserInfo> {
                                 controller: _nickNameController,
                                 cursorColor: Color.fromRGBO(226, 6, 19, 1),
                                 style: TextStyle(color: Colors.white),
-                                // onChanged: (v) => _changenickName(v),
+                                onChanged: (v) => _changeNickName(v),
                                 decoration: InputDecoration(
                                   hintText: "昵称",
                                   hintStyle: TextStyle(
@@ -139,9 +233,8 @@ class _UserInfoState extends State<UserInfo> {
                                     setState(() {
                                       birth = formattedDate;
                                       _ageController.text = birth!;
+                                      userInfoData?.birth = birth;
                                     });
-                                    _sexFocusNode.requestFocus();
-
                                   });
                                 },
                                 decoration: InputDecoration(
@@ -189,9 +282,38 @@ class _UserInfoState extends State<UserInfo> {
                                 keyboardType: TextInputType.text,
                                 controller: _sexController,
                                 focusNode: _sexFocusNode,
+                                readOnly: true,
                                 cursorColor: Color.fromRGBO(226, 6, 19, 1),
                                 style: TextStyle(color: Colors.white),
                                 // onChanged: (v) => _changenickName(v),
+                                onTap: () {
+                                  // 性别数据源
+                                  List<String> genderList = ['男', '女'];
+                                  Pickers.showSinglePicker(context,
+                                      data: genderList,
+                                      pickerStyle: PickerStyle(
+                                          commitButton: Container(
+                                        alignment: Alignment.center,
+                                        padding: const EdgeInsets.only(
+                                            left: 12, right: 22),
+                                        child: Text('确定',
+                                            style: TextStyle(
+                                                color: Colors.black,
+                                                fontSize: 16.0)),
+                                      )), onConfirm: (pickedData, index) {
+                                    print("pickedData:$pickedData");
+                                    if (pickedData == "男") {
+                                      sex = 0;
+                                    } else if (pickedData == "女") {
+                                      sex = 1;
+                                    }
+                                    log.i("sex:$sex");
+                                    setState(() {
+                                      _sexController.text = pickedData;
+                                      userInfoData?.sex = sex;
+                                    });
+                                  });
+                                },
                                 decoration: InputDecoration(
                                   hintText: "性别",
                                   hintStyle: TextStyle(
@@ -234,11 +356,14 @@ class _UserInfoState extends State<UserInfo> {
                               height: 16,
                             ),
                             TextFormField(
-                                keyboardType: TextInputType.text,
+                                keyboardType: TextInputType.number,
                                 controller: _heightController,
                                 cursorColor: Color.fromRGBO(226, 6, 19, 1),
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,// 只允许数字
+                                ],
                                 style: TextStyle(color: Colors.white),
-                                // onChanged: (v) => _changenickName(v),
+                                onChanged: (v) => _changeHeight(v),
                                 decoration: InputDecoration(
                                   hintText: "身高",
                                   hintStyle: TextStyle(
@@ -281,11 +406,14 @@ class _UserInfoState extends State<UserInfo> {
                               height: 16,
                             ),
                             TextFormField(
-                                keyboardType: TextInputType.text,
+                                keyboardType: TextInputType.number,
                                 controller: _weightController,
                                 cursorColor: Color.fromRGBO(226, 6, 19, 1),
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,// 只允许数字
+                                ],
                                 style: TextStyle(color: Colors.white),
-                                // onChanged: (v) => _changenickName(v),
+                                onChanged: (v) => _changeWeight(v),
                                 decoration: InputDecoration(
                                   hintText: "体重",
                                   hintStyle: TextStyle(
@@ -332,7 +460,7 @@ class _UserInfoState extends State<UserInfo> {
                                 controller: _signController,
                                 cursorColor: Color.fromRGBO(226, 6, 19, 1),
                                 style: TextStyle(color: Colors.white),
-                                // onChanged: (v) => _changenickName(v),
+                                onChanged: (v) => _changeSign(v),
                                 maxLines: 3,
                                 decoration: InputDecoration(
                                   hintText: "个签",
@@ -380,7 +508,7 @@ class _UserInfoState extends State<UserInfo> {
                                 controller: _teamController,
                                 cursorColor: Color.fromRGBO(226, 6, 19, 1),
                                 style: TextStyle(color: Colors.white),
-                                // onChanged: (v) => _changenickName(v),
+                                onChanged: (v) => _changeTeam(v),
                                 decoration: InputDecoration(
                                   hintText: "喜爱球队",
                                   hintStyle: TextStyle(
@@ -427,56 +555,9 @@ class _UserInfoState extends State<UserInfo> {
                                 controller: _footballerController,
                                 cursorColor: Color.fromRGBO(226, 6, 19, 1),
                                 style: TextStyle(color: Colors.white),
-                                // onChanged: (v) => _changenickName(v),
+                                onChanged: (v) => _changeFootballer(v),
                                 decoration: InputDecoration(
                                   hintText: "喜爱球员",
-                                  hintStyle: TextStyle(
-                                      fontSize: 14,
-                                      color: Color.fromRGBO(140, 140, 140, 1)),
-                                  counterText: '',
-                                  filled: true,
-                                  // 必须设置为true才能显示背景色
-                                  fillColor: Colors.transparent,
-                                  // 背景色（透明或你需要的颜色）
-                                  // 圆角边框设置
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(18.0),
-                                    borderSide:
-                                        BorderSide.none, // 无边框线（如果需要边框线可以设置颜色）
-                                  ),
-                                  // 禁用状态样式
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(18.0),
-                                    borderSide: BorderSide(
-                                      color: Color.fromRGBO(255, 255, 255, 0.5),
-                                      width: 1.0,
-                                    ),
-                                  ),
-                                  // 聚焦状态样式
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(18.0),
-                                    borderSide: BorderSide(
-                                      color: Color.fromRGBO(226, 6, 19, 1),
-                                      width: 1.0,
-                                    ),
-                                  ),
-                                  // 内容内边距
-                                  contentPadding: EdgeInsets.symmetric(
-                                    horizontal: 16.0,
-                                    vertical: 12.0,
-                                  ),
-                                )),
-                            SizedBox(
-                              height: 16,
-                            ),
-                            TextFormField(
-                                keyboardType: TextInputType.text,
-                                controller: _ballparkController,
-                                cursorColor: Color.fromRGBO(226, 6, 19, 1),
-                                style: TextStyle(color: Colors.white),
-                                // onChanged: (v) => _changenickName(v),
-                                decoration: InputDecoration(
-                                  hintText: "喜爱球场",
                                   hintStyle: TextStyle(
                                       fontSize: 14,
                                       color: Color.fromRGBO(140, 140, 140, 1)),
@@ -521,7 +602,7 @@ class _UserInfoState extends State<UserInfo> {
                                 controller: _positionController,
                                 cursorColor: Color.fromRGBO(226, 6, 19, 1),
                                 style: TextStyle(color: Colors.white),
-                                // onChanged: (v) => _changenickName(v),
+                                onChanged: (v) => _changePos(v),
                                 decoration: InputDecoration(
                                   hintText: "站位",
                                   hintStyle: TextStyle(
@@ -568,7 +649,7 @@ class _UserInfoState extends State<UserInfo> {
                                 controller: _dominantFootController,
                                 cursorColor: Color.fromRGBO(226, 6, 19, 1),
                                 style: TextStyle(color: Colors.white),
-                                // onChanged: (v) => _changenickName(v),
+                                onChanged: (v) => _changeFeet(v),
                                 decoration: InputDecoration(
                                   hintText: "惯用脚",
                                   hintStyle: TextStyle(
@@ -611,9 +692,63 @@ class _UserInfoState extends State<UserInfo> {
                               height: 40,
                             ),
                             GestureDetector(
-                              onTap: () {
-                                Get.to(() => DeviceBinding(),
-                                    transition: Transition.rightToLeft);
+                              onTap: () async {
+                                if (_nickNameController.text.isEmpty) {
+                                  ToastUtil.showSimpleCenterToast("昵称不能为空");
+                                  return;
+                                }
+                                if (_ageController.text.isEmpty) {
+                                  ToastUtil.showSimpleCenterToast("年龄不能为空");
+                                  return;
+                                }
+                                if (_sexController.text.isEmpty) {
+                                  ToastUtil.showSimpleCenterToast("性别不能为空");
+                                  return;
+                                }
+                                if (_heightController.text.isEmpty) {
+                                  ToastUtil.showSimpleCenterToast("身高不能为空");
+                                  return;
+                                }
+                                if (_weightController.text.isEmpty) {
+                                  ToastUtil.showSimpleCenterToast("体重不能为空");
+                                  return;
+                                }
+                                // if (_signController.text.isEmpty) {
+                                //   ToastUtil.showSimpleCenterToast("个签不能为空");
+                                //   return;
+                                // }
+                                if (_teamController.text.isEmpty) {
+                                  ToastUtil.showSimpleCenterToast("喜爱球队不能为空");
+                                  return;
+                                }
+                                if (_footballerController.text.isEmpty) {
+                                  ToastUtil.showSimpleCenterToast("喜爱球员不能为空");
+                                  return;
+                                }
+                                if (_positionController.text.isEmpty) {
+                                  ToastUtil.showSimpleCenterToast("站位不能为空");
+                                  return;
+                                }
+                                if (_dominantFootController.text.isEmpty) {
+                                  ToastUtil.showSimpleCenterToast("惯用脚不能为空");
+                                  return;
+                                }
+                                userInfoData?.avatar = "";
+                                log.i("userInfoData:$userInfoData");
+                                try {
+                                  var res = await logic?.editUserInfo(userInfoData!);
+                                  log.i("editUserInfo:$res");
+                                  if (res["status"] == true) {
+                                    log.i("editUserInfo成功");
+                                    Get.to(() => DeviceBinding(),
+                                        transition: Transition.rightToLeft);
+                                  } else {
+                                    ToastUtil.showSimpleCenterToast("提交用户信息失败，请稍后重试");
+                                  }
+                                } on DioException catch (e) {
+                                  log.e("editUserInfo失败：${e.response}");
+                                  ToastUtil.showSimpleCenterToast("提交用户信息失败，请稍后重试");
+                                }
                               },
                               child: Image.asset(
                                 "images/next.png",
